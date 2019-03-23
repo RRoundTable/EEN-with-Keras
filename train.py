@@ -1,12 +1,11 @@
 from __future__ import division
 import argparse, pdb, os, numpy, imp
 from datetime import datetime
-import model, utils
-from tensorflow.python.keras.optimizers import Adam
+import model_keras, utils
+from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.layers import Input
+from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.losses import mean_absolute_error, mean_squared_error
-
-
 # Training settings
 parser = argparse.ArgumentParser()
 parser.add_argument('-task', type=str, default='poke', help='breakout | seaquest | flappy | poke | driving')
@@ -31,8 +30,10 @@ data_config['datapath'] = '{}/{}'.format(opt.datapath, data_config['datapath'])
 
 opt.ncond = data_config['ncond']
 opt.npred = data_config['npred']
-opt.height = data_config['height']
-opt.width = data_config['width']
+# opt.height = data_config['height']
+# opt.width = data_config['width']
+opt.height=50
+opt.width=50
 opt.nc = data_config['nc']
 opt.phi_fc_size = data_config['phi_fc_size']
 ImageLoader=imp.load_source('ImageLoader', 'dataloaders/{}.py'.format(data_config.get('dataloader'))).ImageLoader
@@ -43,26 +44,34 @@ dataloader = ImageLoader(data_config)
 opt.save_dir = '{}{}'.format(opt.save_dir, opt.task)
 opt.n_in = opt.ncond * opt.nc
 opt.n_out = opt.npred * opt.nc
-opt.model_filename = '{}/model={}-loss={}-ncond={}-npred={}-nf={}-nz={}-lrt={}'.format(
+opt.model_filename = '{}/model={}-loss={}-ncond={}-npred={}-nf={}-nz={}-lrt={}.h5'.format(
                     opt.save_dir, opt.model, opt.loss, opt.ncond, opt.npred, opt.nfeature, opt.n_latent, opt.lrt)
 print("Saving to " + opt.model_filename)
 
 cond, target, action = dataloader.get_batch("train")
 
-# data
+# data shape
 print("cond shape : {}".format(cond.shape)) #  torch.Size([64, 3, 240, 240])
 print("target shape:  {}".format(target.shape)) # torch.Size([64, 3, 240, 240])
 print("action shape : {}".format(action.shape)) #  torch.Size([64, 5])
 
-# ############################
-# ########## train ###########
 
 def train_epoch(model_g,model_f,nsteps):
     total_loss_f, total_loss_g=0,0
     for iter in range(nsteps):
+        model_g.trainable=True # deterministic trainable ON
         cond, target, action = dataloader.get_batch("train")
-        total_loss_g +=model_g.train(cond,target)
-        total_loss_f +=model_f.train(cond, target)
+        total_loss_g +=model_g.train_on_batch(x=cond,y=target) # deterministic network
+
+    # call Model for input shape
+    model_f.get_target(target)
+    model_f(cond) # call Model
+    for iter in range(nsteps):
+        model_g.trainable=False # deterministic trainable OFF
+        cond, target, action = dataloader.get_batch("train")
+        model_f.get_target(target)
+        total_loss_f +=model_f.train_on_batch(cond,target) # conditional network
+
     return total_loss_g/nsteps, total_loss_f/nsteps
 
 def test_epoch(model_g, model_f, nsteps):
@@ -70,9 +79,10 @@ def test_epoch(model_g, model_f, nsteps):
     for iter in range(nsteps):
         cond, target, action = dataloader.get_batch("valid")
         pred_g=model_g(cond)
-        pred_f=model_f(cond,target)
-        total_loss_g+=model_g.loss_function(target,pred_g)
-        total_loss_f+=model_f.loss_function(target,pred_f)
+        model_f.get_target(target) # push target
+        pred_f=model_f(cond)
+        total_loss_g+=K.eval(model_g.loss_function(pred_g,target))
+        total_loss_f+=K.eval(model_f.loss_function(pred_f,target))
     return total_loss_g/nsteps, total_loss_f/nsteps
 
 
@@ -82,28 +92,43 @@ def train(model_g,model_f,n_epochs):
     train_f_loss=[]
     train_g_loss=[]
     # valiation
+    best_valid_loss_f = 0.2
     val_f_loss=[]
     val_g_loss=[]
 
     for i in range(0,n_epochs):
-        train_g_loss_epoch, train_f_loss_epcoh=train_epoch(model_g,model_f,opt.epoch_size)
+        train_g_loss_epoch, train_f_loss_epoch=train_epoch(model_g,model_f,opt.epoch_size)
         val_g_loss_epoch, val_f_loss_epoch=test_epoch(model_g, model_f, int(opt.epoch_size/5))
 
         train_g_loss.append(train_g_loss_epoch)
-        train_f_loss.append(train_f_loss_epcoh)
+        train_f_loss.append(train_f_loss_epoch)
         val_f_loss.append(val_f_loss_epoch)
         val_g_loss.append(val_g_loss_epoch)
+
+        if val_f_loss_epoch<best_valid_loss_f :
+            best_valid_loss_f=val_f_loss_epoch
+            model_f.save_weights(opt.model_filename, overwrite=True)
+
         print("epoch {} training :: g_loss : {}, f_loss : {}".format(i,
                                                                      train_g_loss_epoch,
-                                                                     train_f_loss_epcoh))
+                                                                     train_f_loss_epoch))
+        print("epoch {} validation :: g_loss : {}, f_loss : {}".format(i,
+                                                                     val_g_loss_epoch,
+                                                                     val_f_loss_epoch))
+
 
 if __name__=="__main__":
 
-    model_g=model.DeterministicModel(opt)
-    model_f=model.LatentResidualModel3Layer(model_g,opt)
+    model_g=model_keras.DeterministicModel(opt)
+    model_f=model_keras.LatentResidualModel3Layer(opt,model_g)
+
+    if opt.loss == 'l1':
+        loss = mean_absolute_error
+    elif opt.loss == 'l2':
+        loss = mean_squared_error
+
+    model_g.compile(optimizer="Adam",loss= loss)
+    model_f.compile(optimizer="Adam",loss= loss)
     train(model_g, model_f,500)
-
-
-
 
 

@@ -1,7 +1,7 @@
 from __future__ import division
 import argparse, pdb, os, numpy, imp
 from datetime import datetime
-import model_keras, utils
+import model, utils
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.layers import Input
 from tensorflow.python.keras.optimizers import Adam
@@ -119,16 +119,15 @@ def train(model_g,model_f,n_epochs):
 
 if __name__=="__main__":
 
-    model_g=model_keras.DeterministicModel(opt)
-    model_f=model_keras.LatentResidualModel3Layer(opt,model_g)
+    model_f = model.LatentResidualModel3Layer(opt).build()
 
     if opt.loss == 'l1':
         loss = mean_absolute_error
     elif opt.loss == 'l2':
         loss = mean_squared_error
 
-    model_g.compile(optimizer="Adam",loss= loss)
     model_f.compile(optimizer="Adam",loss= loss)
-    train(model_g, model_f,500)
+    cond, target, action = dataloader.get_batch("train")
+    model_f.train_on_batch([cond, target], target)
 
 

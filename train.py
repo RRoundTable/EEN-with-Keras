@@ -119,7 +119,8 @@ def train(model_g,model_f,n_epochs):
 
 if __name__=="__main__":
 
-    model_f = model.LatentResidualModel3Layer(opt).build()
+    EEN = model.LatentResidualModel3Layer(opt)
+    model_f = EEN.build()
 
     if opt.loss == 'l1':
         loss = mean_absolute_error
@@ -127,7 +128,13 @@ if __name__=="__main__":
         loss = mean_squared_error
 
     model_f.compile(optimizer="Adam",loss= loss)
-    cond, target, action = dataloader.get_batch("train")
-    model_f.train_on_batch([cond, target], target)
+
+    for i in range(100):
+        print(i)
+        cond, target, action = dataloader.get_batch("train")
+        loss = model_f.train_on_batch([cond, target], target)
+        print(loss)
+
+
 
 

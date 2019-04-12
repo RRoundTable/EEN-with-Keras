@@ -48,7 +48,6 @@ class ImageLoader(object):
         super(ImageLoader, self).__init__()
         self.arg = arg
         self.datalist = []
-
         self.height = arg.get('height')
         self.width = arg.get('width')
         self.nc = arg.get('nc')
@@ -58,16 +57,15 @@ class ImageLoader(object):
         self.datalist_test = self._load_set('test')
 
         # keep some training data for validation
-        # self.datalist_valid = self.datalist_train[-3:]
-        # self.datalist_train = self.datalist_train[:-3]
-        self.datalist_valid = self.datalist_train
-        self.datalist_train = self.datalist_train
+        self.datalist_valid = self.datalist_train[-3:]
+        self.datalist_train = self.datalist_train[:-3]
+        # self.datalist_valid = self.datalist_train
+        # self.datalist_train = self.datalist_train
             
         # pointers
         self.iter_video_ptr = 0
         self.iter_sample_ptr = self.ncond
         print("Dataloader constructed done")
-
 
     def reset_ptrs(self):
         self.iter_video_ptr = 0
@@ -86,7 +84,6 @@ class ImageLoader(object):
         actions = actions[start_pos]
         return cond_frames, pred_frames, actions
 
-        
     def get_batch(self, split):
         if split == 'train':
             datalist = self.datalist_train
@@ -110,22 +107,11 @@ class ImageLoader(object):
             pred_frames.append(selected_pred_frames)
             actions.append(selected_actions)
             id += 1
-
         # processing on the numpy array level 
         cond_frames = numpy.array(cond_frames, dtype='float32') / 255.0
         pred_frames = numpy.array(pred_frames, dtype='float32') / 255.0
         actions = numpy.array(actions).squeeze()
-        # return tensor
-        cond_frames_ts = torch.from_numpy(cond_frames).float().cuda()
-        pred_frames_ts = torch.from_numpy(pred_frames).float().cuda()
-        actions_ts = torch.from_numpy(actions).float().cuda()
-
-        # # return tensor : keras
-        # cond_frames_ts=Input(cond_frames)
-        # pred_frames_ts=Input(pred_frames)
-        # actions_ts=Input(actions)
         return cond_frames,pred_frames,actions
-        #return cond_frames_ts, pred_frames_ts, actions_ts
 
 
 

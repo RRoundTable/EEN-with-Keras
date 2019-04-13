@@ -266,10 +266,18 @@ class LatentResidualModel3Layer:
         return layers
 
     def load_weights(self, model):
-        transfer_weights = model.weights
+        transfer_weights = model.get_weights()
         layers = self.get_layers()
-        for i in range(len(transfer_weights)):
-            layers[i].set_weights(transfer_weights[i])
+        i = 0
+        for l in layers:
+            tmp = []
+            print("layer weights : {}".format(len(l.get_weights())))
+            for v in l.get_weights():
+                tmp.append(transfer_weights[i])
+                # print("transfer_weights[{}] : {}".format(i, transfer_weights[i].shape))
+                # print("layer_weights[{}] : {}".format(i, v.shape))
+                i += 1
+            # l.set_weights(tmp)
 
 class BaselineModel3Layer:
     def __init__(self, opt):
@@ -286,8 +294,10 @@ class BaselineModel3Layer:
 if __name__ == '__main__':
     EEN = LatentResidualModel3Layer(opt)
     model = EEN.build()
+    print(model.trainable_variables)
     EEN.get_model_z()
     model.compile(optimizer = "Adam", loss = "mse")
+
 
 
 

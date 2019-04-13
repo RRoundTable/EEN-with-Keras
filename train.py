@@ -150,7 +150,7 @@ if __name__=="__main__":
 
     model_f = een.build()
     base_model = base.build()
-
+    print("model_f : {}".format(model_f.trainable_variables))
     if opt.loss == 'l1':
         loss = mean_absolute_error
     elif opt.loss == 'l2':
@@ -164,6 +164,7 @@ if __name__=="__main__":
 
     optimizer = Adam(opt.lrt)
     model_f.compile(optimizer=optimizer, loss= loss)
+    print("model_f : {}".format(model_f.trainable_variables))
     base_model.compile(optimizer=optimizer, loss = loss)
     callback_f.set_model(model_f)
     callback_g.set_model(base_model)

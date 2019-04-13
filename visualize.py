@@ -4,6 +4,7 @@ from datetime import datetime
 import matplotlib as mpi
 mpi.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import animation
 from sklearn.decomposition import PCA
 import model, utils
 import numpy as np
@@ -73,6 +74,23 @@ def plot_seq(cond, pred, path = None):
     plt.savefig(path) # 위치지정하기
     return fig
 
+fig = plt.figure()
+ax = plt.axes(xlim = (0,2), ylim = (-2, 2))
+
+class MakeGIF:
+    def __init__(self, movie):
+        self.movie = movie
+        self.fig = plt.figure()
+        self.ax = plt.axes(xlim=(0, 2), ylim=(-2, 2))
+        self.frame = self.ax.imshow([])
+
+    def init(self):
+        return self.ax.set_data([]),
+
+    def animate(self, i):
+        return self.ax.set_data(self.movie[i]),
+
+
 if __name__ == "__main__":
 
     een = model.LatentResidualModel3Layer(opt)
@@ -91,6 +109,7 @@ if __name__ == "__main__":
         # load weights : latent model
         print("{} model loading ...".format(opt.model))
         model_f.load_weights(opt.model_filename_f)
+        print("trainable variables : {}".format(len(model_f.get_weights())))
         een.load_weights(model_f) # transfer weight
         model_z = een.get_model_z() # latent variable model
 
@@ -118,8 +137,10 @@ if __name__ == "__main__":
         for b in range(opt.batch_size):
             truth_path = opt.save_dir + "/latent/truth_{}.png".format(b)
             plot_seq(cond[b], target[b], truth_path)
-            pred_path = opt.save_dir + "/latent/pred_{}.png".format(b)
+            pred_path = opt.save_dir +  "/latent/pred_{}.png".format(b)
             plot_seq(cond[b], pred_f[b], pred_path)
+            error_path = opt.save_dir + "/latent/error_{}.png".format(b)
+            plot_seq(cond[b], error[b], error_path)
 
         # different z vectors
         nz = opt.num
@@ -127,15 +148,24 @@ if __name__ == "__main__":
         for idx in range(nz):
             mov.append([])
             print("-------{}------".format(idx))
-            pred_z = een.decode(cond, z)
+            pred_z = een.decode(cond, zlist[idx])
             for b in range(opt.batch_size):
                 save_path = opt.save_dir + "/ep{}.png".format(b)
                 img = plot_seq(cond[b], pred_z[b], save_path)
                 mov[-1].append(img)
 
-        # make movie
-        # for idx in range(nz):
-        #     mov[idx] =
+        # make gif
+        for idx in range(nz):
+            gif = MakeGIF(mov[idx])
+            anim = animation.FuncAnimation(gif.fig, gif.animate,
+                                           init_func=gif.init,
+                                           frames=len(mov[idx]),
+                                           interval=20,
+                                           blit=True)
+            # pip install imagemagick
+            path = None # idx별로 별도로 저장
+            anim.save(path, writer='imagemagick', fps=60)
+
 
     else:
         # load weights : base model

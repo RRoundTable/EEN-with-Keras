@@ -204,6 +204,11 @@ class MultiInputLayer(layers.Layer):
         s = self.f_network_encoder(inputs)
         return Lambda((lambda x: x[0] + x[1]))([s, z_emb])
 
+    def get_layers(self):
+        layers = [self.g_network_encoder, self.g_network_decoder, self.f_network_encoder,
+                 self.phi_network_conv, self.phi_network_fc, self.encoder_latent]
+        return layers
+
 
 
 # Latent Variable Model
@@ -266,18 +271,13 @@ class LatentResidualModel3Layer:
         return layers
 
     def load_weights(self, model):
-        transfer_weights = model.get_weights()
+        transfer_layer = model.layers[2].get_layers()
+        transfer_layer.append(model.layers[3])
         layers = self.get_layers()
         i = 0
         for l in layers:
-            tmp = []
-            print("layer weights : {}".format(len(l.get_weights())))
-            for v in l.get_weights():
-                tmp.append(transfer_weights[i])
-                # print("transfer_weights[{}] : {}".format(i, transfer_weights[i].shape))
-                # print("layer_weights[{}] : {}".format(i, v.shape))
-                i += 1
-            # l.set_weights(tmp)
+            l = transfer_layer[i]
+            i += 1
 
 class BaselineModel3Layer:
     def __init__(self, opt):

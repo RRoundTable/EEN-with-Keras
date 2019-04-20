@@ -21,7 +21,7 @@ parser.add_argument('-lrt', type=float, default=0.0005, help='learning rate')
 parser.add_argument('-epoch_size', type=int, default=500)
 parser.add_argument('-loss', type=str, default='l2', help='l1 | l2')
 parser.add_argument('-gpu', type=int, default=1)
-parser.add_argument('-datapath', type=str, default='.', help='data folder')
+parser.add_argument('-datapath', type=str, default='./', help='data folder')
 parser.add_argument('-f_model', type=str, default='f')
 parser.add_argument('-g_model', type=str, default='g')
 parser.add_argument('-save_dir', type=str, default='./results/', help='where to save the models')
@@ -60,18 +60,13 @@ def plot_seq(cond, pred, path = None):
     :param pred: predict image
     :return: grid image
     """
-    cond_pred = np.concatenate((cond, pred), axis=1)  # channel
-    cond_pred = np.reshape(cond_pred, newshape=(-1, opt.nc, opt.height, opt.width))
-
     # matplotlib : subplot
-    total = len(cond_pred)
     fig, ax = plt.subplots(nrows=1, ncols=2)
-    i = 0
-    for row in ax:
-        for col in row:
-            col.imshow(cond_pred[i])
-
-    plt.savefig(path) # 위치지정하기
+    cond = np.transpose(cond, (1, 2, 0))
+    pred = np.transpose(pred, (1, 2, 0))
+    ax[0].imshow(cond)
+    ax[1].imshow(pred)
+    plt.savefig(path)
     return fig
 
 fig = plt.figure()
@@ -85,10 +80,12 @@ class MakeGIF:
         self.frame = self.ax.imshow([])
 
     def init(self):
-        return self.ax.set_data([]),
+        self.ax.set_data([])
+        return (self.ax, )
 
     def animate(self, i):
-        return self.ax.set_data(self.movie[i]),
+        self.ax.set_data(self.movie[i])
+        return (self.ax, )
 
 
 if __name__ == "__main__":
@@ -118,10 +115,12 @@ if __name__ == "__main__":
         for _ in range(opt.num):
             cond, target, action = dataloader.get_batch("train")
             # our model : latent model
-            z = model_z([cond, target])
+            z = model_z.predict([cond, target], batch_size=opt.batch_size) # error : 학습할 때와 batch_size를 동일하게
             zlist.append(z)
             alist.append(action)
         znp = np.array(zlist)
+        znp = np.squeeze(znp)
+        znp = np.reshape(znp, (opt.batch_size * opt.num, -1))
         # if more 2D, compute PCA so we can visualize the z distribution
         if znp.shape[1] > 2:
             pca = PCA(n_components=2)
@@ -130,9 +129,9 @@ if __name__ == "__main__":
         plt.scatter(znp[:, 0], znp[:, 1], s=2)
         plt.savefig('{}/z_pca_dist.png'.format(opt.save_dir))
         plt.clf()
-
+        print(" END z_pca !!")
         cond, target, action = dataloader.get_batch("test")
-        pred_f = model_f([cond, target])
+        pred_f = model_f.predict([cond, target], batch_size = opt.batch_size)
         error = target - pred_f
         for b in range(opt.batch_size):
             truth_path = opt.save_dir + "/latent/truth_{}.png".format(b)
@@ -141,30 +140,31 @@ if __name__ == "__main__":
             plot_seq(cond[b], pred_f[b], pred_path)
             error_path = opt.save_dir + "/latent/error_{}.png".format(b)
             plot_seq(cond[b], error[b], error_path)
-
+        print(" END truth, pred, error !!")
         # different z vectors
         nz = opt.num
         mov = []
         for idx in range(nz):
             mov.append([])
-            print("-------{}------".format(idx))
+            print("-------{}번째------".format(idx))
             pred_z = een.decode(cond, zlist[idx])
             for b in range(opt.batch_size):
-                save_path = opt.save_dir + "/ep{}.png".format(b)
+                save_path = opt.save_dir + "/latent/ep/ep{}_{}.png".format(idx, b)
                 img = plot_seq(cond[b], pred_z[b], save_path)
                 mov[-1].append(img)
 
-        # make gif
-        for idx in range(nz):
-            gif = MakeGIF(mov[idx])
-            anim = animation.FuncAnimation(gif.fig, gif.animate,
-                                           init_func=gif.init,
-                                           frames=len(mov[idx]),
-                                           interval=20,
-                                           blit=True)
-            # pip install imagemagick
-            path = None # idx별로 별도로 저장
-            anim.save(path, writer='imagemagick', fps=60)
+        # # make gif
+        # for idx in range(nz):
+        #     tmp = [m[idx] for m in mov]
+        #     gif = MakeGIF(tmp)
+        #     anim = animation.FuncAnimation(gif.fig, gif.animate,
+        #                                    init_func=gif.init,
+        #                                    frames=len(mov[idx]),
+        #                                    interval=20,
+        #                                    blit=True)
+        #     # pip install imagemagick
+        #     path = opt.save_dir + "/movie.gif"
+        #     anim.save(path, writer='imagemagick', fps=60)
 
 
     else:

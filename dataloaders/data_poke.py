@@ -3,8 +3,8 @@ import pickle as pickle
 from sklearn.externals import joblib
 import numpy
 from scipy import misc
-import torch
-import torchvision
+# import torch
+# import torchvision
 import utils
 from tensorflow.python.keras.layers import Input
 
@@ -32,8 +32,8 @@ class ImageLoader(object):
                         img = misc.imread(abs_fname)
                         r_img = misc.imresize(img, (self.height, self.width))
                         fd_datalist.append(r_img)
-
-                    fd_datalist = numpy.transpose(numpy.array(fd_datalist), (0, 3, 1, 2))
+                    print(numpy.array(fd_datalist).shape)
+                    # fd_datalist = numpy.transpose(numpy.array(fd_datalist), (0, 3, 1, 2))
                     joblib.dump(fd_datalist,f)
 
                 # numpy.save(os.path.join(abs_fdname, "presave.npy"), fd_datalist)
@@ -149,16 +149,16 @@ class ImageLoader(object):
         pred_frames = numpy.array(pred_frames, dtype='float') / 255.0
         actions = numpy.array(actions).squeeze()
 
-        # return tensor
-        cond_frames_ts = torch.from_numpy(cond_frames).cuda()
-        pred_frames_ts = torch.from_numpy(pred_frames).cuda()
-        actions_ts = torch.from_numpy(actions).cuda()
-
-        # keras
-        return cond_frames_ts, pred_frames_ts, actions_ts
-
-    def plot_seq(self, cond, pred):
-        cond_pred = torch.cat((cond, pred), 1)
-        cond_pred = cond_pred.view(-1, self.nc, self.height, self.width)
-        grid = torchvision.utils.make_grid(cond_pred, self.ncond+self.npred, pad_value=1)
-        return grid
+    #     # return tensor
+    #     cond_frames_ts = torch.from_numpy(cond_frames).cuda()
+    #     pred_frames_ts = torch.from_numpy(pred_frames).cuda()
+    #     actions_ts = torch.from_numpy(actions).cuda()
+    #
+    #     # keras
+    #     return cond_frames_ts, pred_frames_ts, actions_ts
+    #
+    # def plot_seq(self, cond, pred):
+    #     cond_pred = torch.cat((cond, pred), 1)
+    #     cond_pred = cond_pred.view(-1, self.nc, self.height, self.width)
+    #     grid = torchvision.utils.make_grid(cond_pred, self.ncond+self.npred, pad_value=1)
+    #     return grid

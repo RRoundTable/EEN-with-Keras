@@ -10,7 +10,6 @@ import argparse
 import tensorflow as tf
 import numpy as np
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-task', type=str, default='poke', help='breakout | seaquest | flappy | poke | driving')
 parser.add_argument('-seed', type=int, default=1)
@@ -202,14 +201,12 @@ class MultiInputLayer(layers.Layer):
         z_emb = self.encoder_latent(z)
         z_emb = K.reshape(z_emb, (self.opt.batch_size, self.opt.nfeature, 1, 1))
         s = self.f_network_encoder(inputs)
-        return Lambda((lambda x: x[0] + x[1]))([s, z_emb])
+        return Lambda((lambda x: tf.math.add(x[0], x[1])))([s, z_emb])
 
     def get_layers(self):
         layers = [self.g_network_encoder, self.g_network_decoder, self.f_network_encoder,
                  self.phi_network_conv, self.phi_network_fc, self.encoder_latent]
         return layers
-
-
 
 # Latent Variable Model
 class LatentResidualModel3Layer:
@@ -249,21 +246,22 @@ class LatentResidualModel3Layer:
         z = self.phi_network_fc(K.reshape(self.phi_network_conv(r),
                                           (self.opt.batch_size, out_dim[1] * out_dim[2] * out_dim[3])))
         z = K.reshape(z, (self.opt.batch_size, self.opt.n_latent))
-        z_emb = self.encoder_latent(z)
-        z_emb = K.reshape(z_emb, (self.opt.batch_size, self.opt.nfeature, 1, 1))
-        return z_emb
+        return z
 
     def decode(self, inputs, z):
         inputs = K.reshape(inputs, (self.opt.batch_size,
                                     self.opt.ncond * self.opt.nc,
                                     self.opt.height,
                                     self.opt.width))
+        z = tf.convert_to_tensor(z)
         z_emb = self.encoder_latent(z)
-        z_emb = K.reshape(z_emb, (self.opt.batch_size, self.opt.nfeature))
+        z_emb =  K.reshape(z_emb, (self.opt.batch_size, self.opt.nfeature,1, 1))
         s = self.f_network_encoder(inputs)
-        h =Lambda((lambda x: x[0] + x[1]))([s, z_emb])
+        # shape = K.int_shape(s)
+        # z_emb = K.resize_images(z_emb, shape[-2], shape[-1], K.image_data_format())
+        h = Lambda((lambda x: tf.math.add(x[0], x[1])))([s, z_emb])
         pred = self.f_network_decoder(h)
-        return pred
+        return K.eval(pred)
 
     def get_layers(self):
         layers = [self.g_network_encoder, self.g_network_decoder, self.f_network_encoder,
@@ -297,12 +295,3 @@ if __name__ == '__main__':
     print(model.trainable_variables)
     EEN.get_model_z()
     model.compile(optimizer = "Adam", loss = "mse")
-
-
-
-
-
-
-
-
-

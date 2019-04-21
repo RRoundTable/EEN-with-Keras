@@ -41,18 +41,18 @@ DeConvolution : S*(W-1)+F-P
 def g_network_encoder(opt):
     model = Sequential(name="g_encoder")
     # layer 1
-    model.add(ZeroPadding2D(3))
-    model.add(Conv2D(opt.nfeature,(7,7),(2,2),"valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature,(3,3),(2,2),"valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 2
-    model.add(ZeroPadding2D(2))
-    model.add(Conv2D(opt.nfeature, (5, 5), (2, 2),"valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (3, 3), (2, 2),"valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 3
-    model.add(ZeroPadding2D(2))
-    model.add(Conv2D(opt.nfeature, (5, 5), (2, 2), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (2, 2), (1, 1), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     return model
@@ -62,34 +62,34 @@ def g_network_decoder(opt):
     model=Sequential(name="g_decoder")
     # layer 4
     model.add(ZeroPadding2D(1))
-    model.add(Conv2DTranspose(opt.nfeature, (k,k), (2,2), "valid"))
+    model.add(Conv2DTranspose(opt.nfeature, (3,3), (1,1), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 5
     model.add(ZeroPadding2D(1))
-    model.add(Conv2DTranspose(opt.nfeature, (4, 4), (2, 2), "valid"))
+    model.add(Conv2DTranspose(opt.nfeature, (3, 3), (1, 1), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 6
     model.add(ZeroPadding2D(1))
-    model.add(Conv2DTranspose(opt.n_out, (3, 3), (1, 1), "valid"))
+    model.add(Conv2DTranspose(opt.n_out, (4, 4), (2, 2), "valid"))
     return model
 
 def phi_network_conv(opt):
     model = Sequential(name="phi_conv")
     # layer 1
-    model.add(ZeroPadding2D(3))
-    model.add(Conv2D(opt.nfeature, (7, 7), (2, 2), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (3, 3), (2, 2), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 2
-    model.add(ZeroPadding2D(2))
-    model.add(Conv2D(opt.nfeature, (5, 5), (2, 2), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (3, 3), (2, 2), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 3
-    model.add(ZeroPadding2D(2))
-    model.add(Conv2D(opt.nfeature, (5, 5), (2, 2), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (2, 2), (1, 1), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     return model
@@ -109,18 +109,18 @@ def phi_network_fc(opt):
 def f_network_encoder(opt):
     model = Sequential(name="f_encoder")
     # layer 1
-    model.add(ZeroPadding2D(3))
-    model.add(Conv2D(opt.nfeature, (7, 7), (2, 2), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (3, 3), (2, 2), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 2
-    model.add(ZeroPadding2D(2))
-    model.add(Conv2D(opt.nfeature, (5, 5), (2, 2), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (3, 3), (2, 2), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 3
-    model.add(ZeroPadding2D(2))
-    model.add(Conv2D(opt.nfeature, (5, 5), (2, 2), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2D(opt.nfeature, (2, 2), (1, 1), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     return model
@@ -129,17 +129,17 @@ def f_network_decoder(opt):
     model = Sequential(name="f_decoder")
     # layer 4
     model.add(ZeroPadding2D(1))
-    model.add(Conv2DTranspose(opt.nfeature, (5, 5), (2, 2), "valid"))
+    model.add(Conv2DTranspose(opt.nfeature, (3, 3), (1, 1), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 5
     model.add(ZeroPadding2D(1))
-    model.add(Conv2DTranspose(opt.nfeature, (4, 4), (2, 2), "valid"))
+    model.add(Conv2DTranspose(opt.nfeature, (3, 3), (1, 1), "valid"))
     model.add(BatchNormalization())
     model.add(ReLU())
     # layer 6
-    # model.add(ZeroPadding2D(1))
-    model.add(Conv2DTranspose(opt.n_out, (3, 3), (1, 1), "valid"))
+    model.add(ZeroPadding2D(1))
+    model.add(Conv2DTranspose(opt.n_out, (4, 4), (2, 2), "valid"))
     return model
 
 def encoder_latent(opt):
@@ -191,9 +191,9 @@ class MultiInputLayer(layers.Layer):
         inputs = x[0]
         targets = x[1]
         pred_g = self.g_network_decoder(self.g_network_encoder(inputs))
-        model_g = Model(inputs, pred_g)
+
         # residual
-        r = Lambda((lambda x: x[1] - model_g(x[0])))([inputs, targets])
+        r = Lambda((lambda x: x[1] - x[0]))([pred_g, targets])
         out_dim = K.int_shape(self.phi_network_conv(r))  # shape=(?, 64, 7, 7)
         z = self.phi_network_fc(K.reshape(self.phi_network_conv(r),
                                           (self.opt.batch_size, out_dim[1] * out_dim[2] * out_dim[3])))
@@ -201,7 +201,7 @@ class MultiInputLayer(layers.Layer):
         z_emb = self.encoder_latent(z)
         z_emb = K.reshape(z_emb, (self.opt.batch_size, self.opt.nfeature, 1, 1))
         s = self.f_network_encoder(inputs)
-        return Lambda((lambda x: tf.math.add(x[0], x[1])))([s, z_emb])
+        return Lambda((lambda x: tf.math.add(x[0], x[1])))([s, z_emb]) # broadcast
 
     def get_layers(self):
         layers = [self.g_network_encoder, self.g_network_decoder, self.f_network_encoder,
@@ -239,9 +239,8 @@ class LatentResidualModel3Layer:
         inputs = x[0]
         targets = x[1]
         pred_g = self.g_network_decoder(self.g_network_encoder(inputs))
-        model_g = Model(inputs, pred_g)
         # residual
-        r = Lambda((lambda x: x[1] - model_g(x[0])))([inputs, targets])
+        r = Lambda((lambda x: x[0] - x[1]))([targets, pred_g])
         out_dim = K.int_shape(self.phi_network_conv(r))  # shape=(?, 64, 7, 7)
         z = self.phi_network_fc(K.reshape(self.phi_network_conv(r),
                                           (self.opt.batch_size, out_dim[1] * out_dim[2] * out_dim[3])))
@@ -257,8 +256,6 @@ class LatentResidualModel3Layer:
         z_emb = self.encoder_latent(z)
         z_emb =  K.reshape(z_emb, (self.opt.batch_size, self.opt.nfeature,1, 1))
         s = self.f_network_encoder(inputs)
-        # shape = K.int_shape(s)
-        # z_emb = K.resize_images(z_emb, shape[-2], shape[-1], K.image_data_format())
         h = Lambda((lambda x: tf.math.add(x[0], x[1])))([s, z_emb])
         pred = self.f_network_decoder(h)
         return K.eval(pred)
@@ -271,11 +268,13 @@ class LatentResidualModel3Layer:
     def load_weights(self, model):
         transfer_layer = model.layers[2].get_layers()
         transfer_layer.append(model.layers[3])
-        layers = self.get_layers()
-        i = 0
-        for l in layers:
-            l = transfer_layer[i]
-            i += 1
+        self.g_network_encoder = transfer_layer[0]
+        self.g_network_decoder = transfer_layer[1]
+        self.f_network_encoder = transfer_layer[2]
+        self.phi_network_conv = transfer_layer[3]
+        self.phi_network_fc = transfer_layer[4]
+        self.encoder_latent = transfer_layer[5]
+        self.f_network_decoder = transfer_layer[6]
 
 class BaselineModel3Layer:
     def __init__(self, opt):
@@ -292,6 +291,5 @@ class BaselineModel3Layer:
 if __name__ == '__main__':
     EEN = LatentResidualModel3Layer(opt)
     model = EEN.build()
-    print(model.trainable_variables)
     EEN.get_model_z()
     model.compile(optimizer = "Adam", loss = "mse")

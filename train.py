@@ -1,7 +1,8 @@
 from __future__ import division
 import argparse, pdb, os, numpy, imp
 from datetime import datetime
-import model, utils
+import utils
+import model
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.losses import mean_absolute_error, mean_squared_error

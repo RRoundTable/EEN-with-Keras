@@ -6,7 +6,8 @@ mpi.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from sklearn.decomposition import PCA
-import model, utils
+import utils
+import model_filter as model
 import numpy as np
 
 # Training settings
@@ -54,45 +55,39 @@ opt.model_filename_g = '{}/model={}-loss={}-ncond={}-npred={}-nf={}-nz={}-lrt={}
                     opt.save_dir, opt.g_model, opt.loss, opt.ncond, opt.npred, opt.nfeature, opt.n_latent, opt.lrt)
 print("Saving to " + opt.model_filename)
 
-def plot_seq(cond, pred, path = None):
+def plot_seq(cond, pred, path = None, znp = None, idx = None):
     """
     :param cond: input image
     :param pred: predict image
     :return: grid image
     """
     # matplotlib : subplot
-    fig, ax = plt.subplots(nrows=1, ncols=2)
-    cond = np.transpose(cond, (1, 2, 0))
-    pred = np.transpose(pred, (1, 2, 0))
-    ax[0].imshow(cond)
-    ax[1].imshow(pred)
-    plt.savefig(path)
+    if znp is None:
+        fig, ax = plt.subplots(nrows=1, ncols=2)
+        cond = np.transpose(cond, (1, 2, 0))
+        pred = np.transpose(pred, (1, 2, 0))
+        ax[0].imshow(cond)
+        ax[1].imshow(pred)
+        ax[0].set_title(label='input')
+        ax[1].set_title(label='predict')
+        plt.savefig(path)
+    else:
+        fig, ax = plt.subplots(nrows=1, ncols=3)
+        cond = np.transpose(cond, (1, 2, 0))
+        pred = np.transpose(pred, (1, 2, 0))
+        ax[0].imshow(cond)
+        ax[1].imshow(pred)
+        ax[2].scatter(znp[:, 0], znp[:, 1], s=2)
+        ax[2].scatter(znp[idx, 0], znp[idx, 1], s=5, c="red")
+        ax[0].set_title(label='input')
+        ax[1].set_title(label='decoding')
+        ax[2].set_title(label='latent variable')
+        plt.savefig(path)
     return fig
 
-fig = plt.figure()
-ax = plt.axes(xlim = (0,2), ylim = (-2, 2))
-
-class MakeGIF:
-    def __init__(self, movie):
-        self.movie = movie
-        self.fig = plt.figure()
-        self.ax = plt.axes(xlim=(0, 2), ylim=(-2, 2))
-        self.frame = self.ax.imshow([])
-
-    def init(self):
-        self.ax.set_data([])
-        return (self.ax, )
-
-    def animate(self, i):
-        self.ax.set_data(self.movie[i])
-        return (self.ax, )
-
-
 if __name__ == "__main__":
-
     een = model.LatentResidualModel3Layer(opt)
     base = model.BaselineModel3Layer(opt)
-
     # build model
     model_f = een.build()
     base_model = base.build()
@@ -150,23 +145,8 @@ if __name__ == "__main__":
             pred_z = een.decode(cond, zlist[idx])
             for b in range(opt.batch_size):
                 save_path = opt.save_dir + "/latent/ep/ep{}_{}.png".format(idx, b)
-                img = plot_seq(cond[b], pred_z[b], save_path)
+                img = plot_seq(cond[b], pred_z[b], save_path, znp, idx * opt.batch_size + b)
                 mov[-1].append(img)
-
-        # # make gif
-        # for idx in range(nz):
-        #     tmp = [m[idx] for m in mov]
-        #     gif = MakeGIF(tmp)
-        #     anim = animation.FuncAnimation(gif.fig, gif.animate,
-        #                                    init_func=gif.init,
-        #                                    frames=len(mov[idx]),
-        #                                    interval=20,
-        #                                    blit=True)
-        #     # pip install imagemagick
-        #     path = opt.save_dir + "/movie.gif"
-        #     anim.save(path, writer='imagemagick', fps=60)
-
-
     else:
         # load weights : base model
         print("{} model loading ...".format(opt.model))

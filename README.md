@@ -43,6 +43,10 @@ python train.py [option]
 python visualize.py [option]
 ```
 
+## dataset
+
+Poke dataset
+
 ## reference
 - paper : https://arxiv.org/pdf/1711.04994.pdf
 - github : https://github.com/mbhenaff/EEN

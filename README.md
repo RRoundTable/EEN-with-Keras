@@ -8,11 +8,11 @@ timeseries data의 uncertainty를  latent variable로 encoding하여, multi moda
 
 ## model structure
 
-![structure](een-crop.png)
+![structure](./img/een-crop.png)
 
 ## latent variable
 
-![pca](z_pca_dist.png)
+![pca](./img/z_pca_dist.png)
 
 
 ## result

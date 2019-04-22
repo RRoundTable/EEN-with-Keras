@@ -92,6 +92,12 @@ def write_log(callback, names, logs, batch_no):
         callback.writer.flush()
 
 def train_epoch(model_f, mode, nsteps):
+    """
+    :param model_f:
+    :param mode: latent-3layer or base
+    :param nsteps: epoch size
+    :return: train loss
+    """
     total_loss_f  =  0
     if mode == 'latent-3layer' :
         for iter in range(nsteps):
@@ -104,6 +110,12 @@ def train_epoch(model_f, mode, nsteps):
     return total_loss_f/nsteps
 
 def test_epoch(model_f, mode, nsteps):
+    """
+    :param model_f:
+    :param mode: latent-3layer or base
+    :param nsteps: epoch size
+    :return: test loss
+    """
     total_loss_f = 0
     if mode == 'latent-3layer' :
         for iter in range(nsteps):
@@ -117,6 +129,13 @@ def test_epoch(model_f, mode, nsteps):
 
 
 def train(model_f, callback_f, mode, n_epochs):
+    """
+    train network
+    :param model_f:
+    :param callback_f: tensorboard
+    :param mode:
+    :param n_epochs: num of epochs
+    """
     # mode
     if mode == 'latent-3layer':
         save_path = opt.model_filename_f
@@ -141,7 +160,7 @@ def train(model_f, callback_f, mode, n_epochs):
             model_f.save_weights(save_path, overwrite=True)
         # write log : tensorboard
         print("Write summary...")
-        callback_f.on_epoch_end(i,named_logs(names, [train_f_loss_epoch,val_f_loss_epoch]))
+        callback_f.on_epoch_end(i,named_logs(names, [train_f_loss_epoch, val_f_loss_epoch]))
         print("epoch {} training :: f_loss : {}".format(i, train_f_loss_epoch))
         print("epoch {} validation ::  f_loss : {}".format(i, val_f_loss_epoch))
 

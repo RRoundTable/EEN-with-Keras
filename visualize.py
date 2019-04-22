@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from sklearn.decomposition import PCA
 import utils
-import model_filter as model
+import model as model
 import numpy as np
 
 # Training settings
@@ -57,9 +57,12 @@ print("Saving to " + opt.model_filename)
 
 def plot_seq(cond, pred, path = None, znp = None, idx = None):
     """
-    :param cond: input image
-    :param pred: predict image
-    :return: grid image
+    plot cond and pred
+    :param cond: inputs
+    :param pred: predictions
+    :param path: save path
+    :param znp: latent_variable(PCA)
+    :param idx: used index of latent variable
     """
     # matplotlib : subplot
     if znp is None:
@@ -78,12 +81,12 @@ def plot_seq(cond, pred, path = None, znp = None, idx = None):
         ax[0].imshow(cond)
         ax[1].imshow(pred)
         ax[2].scatter(znp[:, 0], znp[:, 1], s=2)
-        ax[2].scatter(znp[idx, 0], znp[idx, 1], s=5, c="red")
+        ax[2].scatter(znp[idx, 0], znp[idx, 1], s=10, c="red")
         ax[0].set_title(label='input')
         ax[1].set_title(label='decoding')
         ax[2].set_title(label='latent variable')
         plt.savefig(path)
-    return fig
+
 
 if __name__ == "__main__":
     een = model.LatentResidualModel3Layer(opt)

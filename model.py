@@ -1,10 +1,7 @@
 #-*- coding: utf-8 -*-
-from tensorflow.python.keras.layers import Conv2D, BatchNormalization, ReLU,\
-    Conv2DTranspose,Dense, ZeroPadding2D,Reshape,concatenate,Lambda, Input
-from tensorflow.python.keras.optimizers import Adam
+from tensorflow.python.keras.layers import Conv2D, BatchNormalization, ReLU,Conv2DTranspose, Dense, ZeroPadding2D, Lambda, Input
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras import layers
-from tensorflow.python.keras.losses import mean_absolute_error, mean_squared_error
 from tensorflow.python.keras import backend as K
 import argparse
 import tensorflow as tf
@@ -39,6 +36,11 @@ Convolution : (W-F+2P)/S+1
 DeConvolution : S*(W-1)+F-P
 """
 def g_network_encoder(opt):
+    """
+    deterministic encoder
+    :param opt: parser
+    :return: keras Model
+    """
     model = Sequential(name="g_encoder")
     # layer 1
     model.add(ZeroPadding2D(1))
@@ -58,6 +60,11 @@ def g_network_encoder(opt):
     return model
 
 def g_network_decoder(opt):
+    """
+    deterministic encoder
+    :param opt: parser
+    :return: keras Model
+    """
     k = 4 # poke
     model=Sequential(name="g_decoder")
     # layer 4
@@ -76,6 +83,11 @@ def g_network_decoder(opt):
     return model
 
 def phi_network_conv(opt):
+    """
+    encoder for residual images(error)
+    :param opt: parser
+    :return: keras Model
+    """
     model = Sequential(name="phi_conv")
     # layer 1
     model.add(ZeroPadding2D(1))
@@ -95,6 +107,11 @@ def phi_network_conv(opt):
     return model
 
 def phi_network_fc(opt):
+    """
+    fc layer for encoded error
+    :param opt: parser
+    :return: keras Model
+    """
     model = Sequential(name="phi_fc")
     model.add(Dense(1000))
     model.add(BatchNormalization())
@@ -107,6 +124,11 @@ def phi_network_fc(opt):
 
 # conditional network
 def f_network_encoder(opt):
+    """
+    conditional encoder
+    :param opt: parser
+    :return: keras Model
+    """
     model = Sequential(name="f_encoder")
     # layer 1
     model.add(ZeroPadding2D(1))
@@ -126,6 +148,11 @@ def f_network_encoder(opt):
     return model
 
 def f_network_decoder(opt):
+    """
+    conditional decoder
+    :param opt: parser
+    :return: keras Model
+    """
     model = Sequential(name="f_decoder")
     # layer 4
     model.add(ZeroPadding2D(1))
@@ -143,6 +170,11 @@ def f_network_decoder(opt):
     return model
 
 def encoder_latent(opt):
+    """
+    latent variable layer
+    :param opt: parser
+    :return: keras Model
+    """
     model=Sequential(name="encoder_latent")
     model.add(Dense(opt.nfeature))
     return model
@@ -165,9 +197,7 @@ class DeterministicModel:
 
 class MultiInputLayer(layers.Layer):
     """
-    # Custom Layer #
-    - Multi input
-    - Single output
+    Custom layer
     """
     def __init__(self, output_dim, opt):
         self.output_dim = output_dim
@@ -188,6 +218,11 @@ class MultiInputLayer(layers.Layer):
         super(MultiInputLayer, self).build(input_shape)
 
     def call(self, x):
+        """
+        feedforward
+        :param x:  [inputs, targets]
+        :return: hidden tensor
+        """
         inputs = x[0]
         targets = x[1]
         pred_g = self.g_network_decoder(self.g_network_encoder(inputs))
@@ -201,7 +236,7 @@ class MultiInputLayer(layers.Layer):
         z_emb = self.encoder_latent(z)
         z_emb = K.reshape(z_emb, (self.opt.batch_size, self.opt.nfeature, 1, 1))
         s = self.f_network_encoder(inputs)
-        return Lambda((lambda x: tf.math.add(x[0], x[1])))([s, z_emb]) # broadcast
+        return Lambda((lambda x: tf.math.add(x[0], x[1])))([s, z_emb]) # tf.math.add : broadcast
 
     def get_layers(self):
         layers = [self.g_network_encoder, self.g_network_decoder, self.f_network_encoder,
@@ -210,7 +245,13 @@ class MultiInputLayer(layers.Layer):
 
 # Latent Variable Model
 class LatentResidualModel3Layer:
+    """
+    Our Model : Error-Encoding-Network
+    """
     def __init__(self, opt):
+        """
+        :param opt: parser
+        """
         self.opt = opt
         self.g_network_encoder = g_network_encoder(self.opt)
         self.g_network_decoder = g_network_decoder(self.opt)
@@ -222,6 +263,10 @@ class LatentResidualModel3Layer:
         self.hidden = MultiInputLayer([64, 7, 7], self.opt)
 
     def build(self):
+        """
+        EEN
+        :return: keras Model
+        """
         inputs_ = Input((self.opt.nc, self.opt.height, self.opt.width))
         targets_ = Input((self.opt.nc, self.opt.height, self.opt.width))
         h = self.hidden([inputs_, targets_])
@@ -230,12 +275,20 @@ class LatentResidualModel3Layer:
         return model_f
 
     def get_model_z(self):
+        """
+        return latent variable model
+        :return: keras Model
+        """
         inputs = Input((self.opt.nc, self.opt.height, self.opt.width))
         targets =Input((self.opt.nc, self.opt.height, self.opt.width))
         z_emb = Lambda(self.get_latent)([inputs, targets])
         return Model([inputs, targets], z_emb)
 
     def get_latent(self, x):
+        """
+        :param x: [inputs, targets]
+        :return: latent variable
+        """
         inputs = x[0]
         targets = x[1]
         pred_g = self.g_network_decoder(self.g_network_encoder(inputs))
@@ -248,6 +301,11 @@ class LatentResidualModel3Layer:
         return z
 
     def decode(self, inputs, z):
+        """
+        :param inputs:
+        :param z: latent variable
+        :return: prediction with latent variable
+        """
         inputs = K.reshape(inputs, (self.opt.batch_size,
                                     self.opt.ncond * self.opt.nc,
                                     self.opt.height,
@@ -266,6 +324,10 @@ class LatentResidualModel3Layer:
         return layers
 
     def load_weights(self, model):
+        """
+        update layers
+        :param model: trained model
+        """
         transfer_layer = model.layers[2].get_layers()
         transfer_layer.append(model.layers[3])
         self.g_network_encoder = transfer_layer[0]

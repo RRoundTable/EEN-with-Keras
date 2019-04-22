@@ -82,7 +82,7 @@ def named_logs(names, logs):
     result[l[0]] = l[1]
   return result
 
-def write_log(callback, names, logs, batch_no):
+def write_log(callback, names, logs, batch_no) -> None:
     for name,value in zip(names,logs):
         summary=tf.Summary()
         summary_value=summary.value.add()
@@ -93,7 +93,7 @@ def write_log(callback, names, logs, batch_no):
 
 def train_epoch(model_f, mode, nsteps):
     """
-    :param model_f:
+    :param model_f: keras model
     :param mode: latent-3layer or base
     :param nsteps: epoch size
     :return: train loss
@@ -111,9 +111,9 @@ def train_epoch(model_f, mode, nsteps):
 
 def test_epoch(model_f, mode, nsteps):
     """
-    :param model_f:
-    :param mode: latent-3layer or base
-    :param nsteps: epoch size
+    :param model_f: keras model
+    :param mode(str): latent-3layer or base
+    :param nsteps(int): epoch size
     :return: test loss
     """
     total_loss_f = 0
@@ -128,13 +128,12 @@ def test_epoch(model_f, mode, nsteps):
     return total_loss_f/nsteps
 
 
-def train(model_f, callback_f, mode, n_epochs):
-    """
-    train network
-    :param model_f:
+def train(model_f, callback_f, mode, n_epochs) -> None:
+    """Train network
+    :param model_f: keras model
     :param callback_f: tensorboard
-    :param mode:
-    :param n_epochs: num of epochs
+    :param mode(str): latent-3layer or base
+    :param n_epochs(int): num of epochs
     """
     # mode
     if mode == 'latent-3layer':

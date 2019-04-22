@@ -36,8 +36,7 @@ Convolution : (W-F+2P)/S+1
 DeConvolution : S*(W-1)+F-P
 """
 def g_network_encoder(opt):
-    """
-    deterministic encoder
+    """Deterministic encoder
     :param opt: parser
     :return: keras Model
     """
@@ -60,8 +59,7 @@ def g_network_encoder(opt):
     return model
 
 def g_network_decoder(opt):
-    """
-    deterministic encoder
+    """Deterministic decoder
     :param opt: parser
     :return: keras Model
     """
@@ -83,8 +81,7 @@ def g_network_decoder(opt):
     return model
 
 def phi_network_conv(opt):
-    """
-    encoder for residual images(error)
+    """Encoder for residual images(error)
     :param opt: parser
     :return: keras Model
     """
@@ -107,8 +104,7 @@ def phi_network_conv(opt):
     return model
 
 def phi_network_fc(opt):
-    """
-    fc layer for encoded error
+    """FC layer for encoded error
     :param opt: parser
     :return: keras Model
     """
@@ -124,8 +120,7 @@ def phi_network_fc(opt):
 
 # conditional network
 def f_network_encoder(opt):
-    """
-    conditional encoder
+    """Conditional encoder
     :param opt: parser
     :return: keras Model
     """
@@ -147,9 +142,8 @@ def f_network_encoder(opt):
     model.add(ReLU())
     return model
 
-def f_network_decoder(opt):
-    """
-    conditional decoder
+def f_network_decoder(opt:'parser'):
+    """Conditional decoder
     :param opt: parser
     :return: keras Model
     """
@@ -170,8 +164,7 @@ def f_network_decoder(opt):
     return model
 
 def encoder_latent(opt):
-    """
-    latent variable layer
+    """Latent variable layer
     :param opt: parser
     :return: keras Model
     """
@@ -205,8 +198,7 @@ class MultiInputLayer(layers.Layer):
         super(MultiInputLayer, self).__init__()
 
     def build(self, input_shape):
-        """
-        create a trainable weight
+        """Create a trainable weight
         :param input_shape: [cond, target]
         """
         self.g_network_encoder = g_network_encoder(self.opt)
@@ -218,8 +210,7 @@ class MultiInputLayer(layers.Layer):
         super(MultiInputLayer, self).build(input_shape)
 
     def call(self, x):
-        """
-        feedforward
+        """Feedforward
         :param x:  [inputs, targets]
         :return: hidden tensor
         """
@@ -248,7 +239,7 @@ class LatentResidualModel3Layer:
     """
     Our Model : Error-Encoding-Network
     """
-    def __init__(self, opt):
+    def __init__(self, opt) -> None:
         """
         :param opt: parser
         """
@@ -263,8 +254,7 @@ class LatentResidualModel3Layer:
         self.hidden = MultiInputLayer([64, 7, 7], self.opt)
 
     def build(self):
-        """
-        EEN
+        """Error Encoding Network
         :return: keras Model
         """
         inputs_ = Input((self.opt.nc, self.opt.height, self.opt.width))
@@ -287,6 +277,8 @@ class LatentResidualModel3Layer:
     def get_latent(self, x):
         """
         :param x: [inputs, targets]
+         - inputs : numpy array
+         - targets : numpy array
         :return: latent variable
         """
         inputs = x[0]
@@ -302,7 +294,7 @@ class LatentResidualModel3Layer:
 
     def decode(self, inputs, z):
         """
-        :param inputs:
+        :param inputs: numpy_array(images)
         :param z: latent variable
         :return: prediction with latent variable
         """
@@ -324,8 +316,7 @@ class LatentResidualModel3Layer:
         return layers
 
     def load_weights(self, model):
-        """
-        update layers
+        """Update layers
         :param model: trained model
         """
         transfer_layer = model.layers[2].get_layers()

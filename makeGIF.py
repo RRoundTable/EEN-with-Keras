@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+#/usr/bin/python3
+'''
+Apr. 2019 by wontak ryu.
+ryu071511@gmail.com.
+https://github.com/RRoundTable/EEN-with-Keras.
+
+Make gif file.
+'''
+
 import matplotlib.pyplot as plt
 import numpy as np
 import glob

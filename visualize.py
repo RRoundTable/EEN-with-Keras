@@ -1,6 +1,16 @@
+# -*- coding: utf-8 -*-
+#/usr/bin/python3
+'''
+Apr. 2019 by wontak ryu.
+ryu071511@gmail.com.
+https://github.com/RRoundTable/EEN-with-Keras.
+
+Visualize result.
+'''
+
+
 import argparse, pdb, os, numpy, glob, imp, imageio
 from tensorflow.python.keras.losses import mean_absolute_error, mean_squared_error
-from datetime import datetime
 import matplotlib as mpi
 mpi.use('Agg')
 import matplotlib.pyplot as plt

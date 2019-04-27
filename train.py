@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+#/usr/bin/python3
+'''
+Apr. 2019 by wontak ryu.
+ryu071511@gmail.com.
+https://github.com/RRoundTable/EEN-with-Keras.
+
+Train model.
+'''
+
 from __future__ import division
 import argparse, pdb, os, numpy, imp
 from datetime import datetime

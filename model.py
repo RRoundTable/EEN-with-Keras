@@ -1,4 +1,12 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+#/usr/bin/python3
+'''
+Apr. 2019 by wontak ryu.
+ryu071511@gmail.com.
+https://github.com/RRoundTable/EEN-with-Keras.
+
+Building keras model.
+'''
 from tensorflow.python.keras.layers import Conv2D, BatchNormalization, ReLU,Conv2DTranspose, Dense, ZeroPadding2D, Lambda, Input
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras import layers

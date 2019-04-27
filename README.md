@@ -1,53 +1,66 @@
-# EEN-with-Keras
-facebook research의 Error-Encoding-Network을 keras로 구현하였습니다.
+## Introduction
 
+Facebook AI research implemented error encoding network by pytorch.
 
-## Error Encoding Network
+I want to EEN implemented by keras too.
 
-timeseries data의 uncertainty를  latent variable로 encoding하여, multi modal한 data를 학습할 수 있다.
+But, There are people who have limited GPU resources. So, I reduced input image size and made it smaller network.
 
-## model structure
+## Thanks to
+
+I was sponsored by [EpiSys Science](http://episci-inc.com/).
+
+This company has a passion for 'uncertainty detection' in deep learning. 
+
+## Error_Encoding_Network
+
+In the [paper](https://arxiv.org/pdf/1711.04994.pdf), it is based on a simple idea of disentangling components of the future state which are predictable.
+
+As a result, it is able to consistently generate diverse predictions without the need for alternating minimization over a latent space or adversarial training.
+
+## Model structure
+
+Train latent variable model with alternating minimization.
 
 ![structure](./img/een-crop.png)
 
-## latent variable
+## Latent variable
 
 ![pca](./img/z_pca_dist.png)
 
 
-## result
+## Result
 
-각 decoding은 해당 latent variable(red)와 input에 대한 결과물입니다.
+Each decoding image is a  combination of input image and latent variable(red point).
 
-유사한 위치의 latent variable을 상대적으로 먼 거리의 latent variable보다 더 유사한 decoding 결과를 보여주고 있습니다.
-
+It shows the nearer latent variable is, the more similar decoding image is.
+ 
 ![demo](./results/cond_0.gif)
 
 ![demo](./results/cond_11.gif)
 
-## dependency
+## Dependency
 
-- tensorflow 1.3
+- tensorflow-gpu 1.3
 - numpy
 - matplotlib
 
-## usage
-- train
+## Usage
 
+- train
 ```python
 python train.py [option]
 ```
-
 - visualize
 ```python
 python visualize.py [option]
 ```
 
-## dataset
+## Dataset
 
 [Poke](http://ashvin.me/pokebot-website/)
 
-## reference
+## Reference
 - paper : https://arxiv.org/pdf/1711.04994.pdf
 - github : https://github.com/mbhenaff/EEN
 

@@ -1,26 +1,22 @@
 ## Introduction
 
-Facebook AI research implemented error encoding network by pytorch.
+This is an unofficial implementation of Error Encoding Networks which is originally developed by Facebook AI Research using Keras.
 
-I want to EEN implemented by keras too.
-
-But, There are people who have limited GPU resources. So, I reduced input image size and made it smaller network.
+To alleviate the necessity of GPU resources, the smaller network is used by reducing the size of an input image.
 
 ## Thanks to
 
-I was sponsored by [EpiSys Science](http://episci-inc.com/).
+This project is independently sponsored by [EpiSys Science](http://episci-inc.com/) which research is mainly focused on **uncertainty detection** in deep learning.
 
-This company has a passion for 'uncertainty detection' in deep learning. 
+## Error Encoding Network
 
-## Error_Encoding_Network
+This [paper](https://arxiv.org/pdf/1711.04994.pdf) is branched on a simple idea which is disentangled components of the predictable future state.
 
-In the [paper](https://arxiv.org/pdf/1711.04994.pdf), it is based on a simple idea of disentangling components of the future state which are predictable.
-
-As a result, it is able to consistently generate diverse predictions without the need for alternating minimization over a latent space or adversarial training.
+As a result, it is able to consistently generate diverse predictions without minimizing the alternating latent space or adversarial training.
 
 ## Model structure
 
-Train latent variable model with alternating minimization.
+The model is trained to alternate minimizing latent variable model.
 
 ![structure](./img/een-crop.png)
 
@@ -31,9 +27,9 @@ Train latent variable model with alternating minimization.
 
 ## Result
 
-Each decoding image is a  combination of input image and latent variable(red point).
+As a result, each decoding image can be represented with a combination of the input image and latent variable which is indicated by red points.
 
-It shows the nearer latent variable is, the more similar decoding image is.
+The distance of different latent variables measures the similarity of decoding images.
  
 ![demo](./results/cond_0.gif)
 
@@ -63,7 +59,6 @@ python visualize.py [option]
 ## Reference
 - paper : https://arxiv.org/pdf/1711.04994.pdf
 - github : https://github.com/mbhenaff/EEN
-
 
 
 
